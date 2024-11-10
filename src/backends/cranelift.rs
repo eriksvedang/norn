@@ -13,7 +13,7 @@ pub struct CraneliftBackend {
 }
 
 impl CraneliftBackend {
-    pub fn new() -> Self {
+    pub fn new(symbol_lookup_fn: Box<dyn Fn(&str) -> Option<*const u8> + Send>) -> Self {
         let mut flag_builder = settings::builder();
         flag_builder.set("use_colocated_libcalls", "false").unwrap();
         // FIXME set back to true once the x64 backend supports it.
@@ -27,6 +27,7 @@ impl CraneliftBackend {
 
         let mut jit_builder = JITBuilder::with_isa(isa, cranelift_module::default_libcall_names());
         //jit_builder.symbol("foo", foo as *const u8);
+        jit_builder.symbol_lookup_fn(symbol_lookup_fn);
 
         let mut module = JITModule::new(jit_builder);
 
@@ -96,8 +97,8 @@ impl Backend for CraneliftBackend {
             let block = bcx.create_block();
 
             bcx.switch_to_block(block);
-            let local_func = self.module.declare_func_in_func(func_a, &mut bcx.func);
-            //let local_func = self.module.declare_func_in_func(callee, &mut bcx.func);
+            //let local_func = self.module.declare_func_in_func(func_a, &mut bcx.func);
+            let local_func = self.module.declare_func_in_func(callee, &mut bcx.func);
             let x: i64 = 666;
             let arg = bcx.ins().iconst(types::I32, x);
             let call = bcx.ins().call(local_func, &[arg]);

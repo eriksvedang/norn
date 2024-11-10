@@ -17,7 +17,7 @@ pub extern "C" fn foo(x: i32) -> i32 {
 }
 
 pub fn main() {
-    let backend = CraneliftBackend::new();
+    let backend = CraneliftBackend::new(Box::new(symbol_lookup_fn));
     let mut builder = Builder::new(backend);
 
     builder.define_function(
@@ -25,4 +25,8 @@ pub fn main() {
         ParameterList(vec![]),
         AstNode::Do(vec![AstNode::Call(SymPath::from_str("print"), vec![])]),
     );
+}
+
+fn symbol_lookup_fn(name: &str) -> Option<*const u8> {
+    Some(foo as *const u8)
 }
