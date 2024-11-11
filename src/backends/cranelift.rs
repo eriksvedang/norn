@@ -38,25 +38,52 @@ impl CraneliftBackend {
     }
 
     fn visit_ast_node<'a>(
-        &'a self,
+        &'a mut self,
         fb: &'a mut FunctionBuilder,
         block: Block,
-        _body: AstNode,
+        node: AstNode,
     ) -> Value {
-        let param = fb.block_params(block)[0];
-        let cst = fb.ins().iconst(types::I32, 37);
-        let add = fb.ins().iadd(cst, param);
-        add
+        // let param = fb.block_params(block)[0];
+        // let cst = fb.ins().iconst(types::I32, 37);
+        // let add = fb.ins().iadd(cst, param);
+        // add
+
+        match node {
+            AstNode::Do(statements) => {
+                let mut res: Value = Value::from_u32(0); // FIXME
+                for s in statements {
+                    res = self.visit_ast_node(fb, block, s);
+                }
+                res
+            }
+            AstNode::Call(path, args) => {
+                let mut sig = self.module.make_signature();
+                sig.params.push(AbiParam::new(types::I32));
+                sig.returns.push(AbiParam::new(types::I32));
+                let callee = self
+                    .module
+                    .declare_function(&path.to_string(), Linkage::Import, &sig)
+                    .unwrap();
+                let local_func = self.module.declare_func_in_func(callee, &mut fb.func);
+                let i_arg: i64 = match args[0] {
+                    AstNode::Constant(x) => x as i64,
+                    _ => panic!(),
+                };
+                let arg = fb.ins().iconst(types::I32, i_arg);
+                let call = fb.ins().call(local_func, &[arg]);
+                let value = {
+                    let results = fb.inst_results(call);
+                    assert_eq!(results.len(), 1);
+                    results[0]
+                };
+                value
+            }
+            AstNode::SetLocal(_, _) => todo!(),
+            AstNode::Variable(_) => todo!(),
+            AstNode::Constant(_) => todo!(),
+        }
     }
 }
-
-// let mut foo_sig = self.module.make_signature();
-// foo_sig.params.push(AbiParam::new(types::I32));
-// foo_sig.returns.push(AbiParam::new(types::I32));
-// let callee = self
-//     .module
-//     .declare_function("foo", Linkage::Import, &foo_sig)
-//     .unwrap();
 
 impl Backend for CraneliftBackend {
     type FunctionHandle = FuncId;
@@ -100,7 +127,13 @@ impl Backend for CraneliftBackend {
 
     fn call_function(&self, function_handle: &Self::FunctionHandle) -> i32 {
         let code = self.module.get_finalized_function(*function_handle);
-        let ptr = unsafe { mem::transmute::<_, extern "C" fn(i32) -> i32>(code) };
-        ptr(10)
+        let ptr = unsafe { mem::transmute::<_, extern "C" fn() -> i32>(code) };
+        ptr()
+    }
+
+    fn call_function_one_arg<T>(&self, function_handle: &Self::FunctionHandle, arg0: T) -> i32 {
+        let code = self.module.get_finalized_function(*function_handle);
+        let ptr = unsafe { mem::transmute::<_, extern "C" fn(T) -> i32>(code) };
+        ptr(arg0)
     }
 }

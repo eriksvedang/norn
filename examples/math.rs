@@ -35,6 +35,18 @@ pub fn main() {
         )]),
     );
 
-    let answer = builder.call_without_arguments(&SymPath::from_str("print_42"));
-    println!("answer = {:?}", answer);
+    builder.define_function(
+        SymPath::from_str("square_3"),
+        ParameterList(vec![]),
+        AstNode::Do(vec![AstNode::Call(
+            SymPath::from_str("square"),
+            vec![AstNode::Constant(3)],
+        )]),
+    );
+
+    let answer_a = builder.call_without_arguments(&SymPath::from_str("print_42"));
+    println!("answer a = {:?}", answer_a);
+
+    let answer_b = builder.call_without_arguments(&SymPath::from_str("square_3"));
+    println!("answer b = {:?}", answer_b);
 }

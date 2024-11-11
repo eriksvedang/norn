@@ -7,4 +7,5 @@ pub trait Backend {
 
     fn define_function(&mut self, name: &str, func_ty: Ty, ast: AstNode) -> Self::FunctionHandle;
     fn call_function(&self, function_handle: &Self::FunctionHandle) -> i32;
+    fn call_function_one_arg<T>(&self, function_handle: &Self::FunctionHandle, arg0: T) -> i32;
 }
