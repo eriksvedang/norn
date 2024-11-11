@@ -1,11 +1,7 @@
-pub struct FunctionDef {
+pub struct FunctionDef<F> {
+    pub handle: F,
     // TODO: type signature
-    // TODO: code handle
     // TODO: dependencies
 }
 
-pub struct FunctionHandle(pub usize);
-
 pub struct StructDef {}
-
-pub struct StructHandle(pub usize);

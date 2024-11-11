@@ -11,4 +11,8 @@ impl SymPath {
             name: str.to_string(),
         }
     }
+
+    pub(crate) fn to_string(&self) -> String {
+        self.name.to_string()
+    }
 }
