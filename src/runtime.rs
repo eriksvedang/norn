@@ -8,13 +8,13 @@ use crate::sympath::SymPath;
 use crate::ty::Ty;
 use std::collections::HashMap;
 
-pub struct Builder<B: Backend> {
+pub struct Runtime<B: Backend> {
     backend: B,
     functions: HashMap<SymPath, FunctionDef<B::FunctionHandle>>,
     structs: HashMap<SymPath, StructDef>,
 }
 
-impl<B: Backend> Builder<B> {
+impl<B: Backend> Runtime<B> {
     pub fn new(backend: B) -> Self {
         Self {
             backend,

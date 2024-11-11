@@ -3,8 +3,8 @@
 use std::collections::HashMap;
 
 use norn::{
-    ast::AstNode, backends::cranelift::CraneliftBackend, builder::Builder,
-    parameter_list::ParameterList, sympath::SymPath,
+    ast::AstNode, backends::cranelift::CraneliftBackend, parameter_list::ParameterList,
+    runtime::Runtime, sympath::SymPath,
 };
 
 #[allow(dead_code)]
@@ -24,9 +24,9 @@ pub fn main() {
     ]);
 
     let backend = CraneliftBackend::new(c_functions);
-    let mut builder = Builder::new(backend);
+    let mut runtime = Runtime::new(backend);
 
-    builder.define_function(
+    runtime.define_function(
         SymPath::from_str("print_42"),
         ParameterList(vec![]),
         AstNode::Do(vec![AstNode::Call(
@@ -35,7 +35,7 @@ pub fn main() {
         )]),
     );
 
-    builder.define_function(
+    runtime.define_function(
         SymPath::from_str("square_3"),
         ParameterList(vec![]),
         AstNode::Do(vec![AstNode::Call(
@@ -44,9 +44,9 @@ pub fn main() {
         )]),
     );
 
-    let answer_a = builder.call_without_arguments(&SymPath::from_str("print_42"));
+    let answer_a = runtime.call_without_arguments(&SymPath::from_str("print_42"));
     println!("answer a = {:?}", answer_a);
 
-    let answer_b = builder.call_without_arguments(&SymPath::from_str("square_3"));
+    let answer_b = runtime.call_without_arguments(&SymPath::from_str("square_3"));
     println!("answer b = {:?}", answer_b);
 }
